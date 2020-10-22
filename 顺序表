@@ -1,0 +1,184 @@
+# include<stdio.h>
+#include<stdlib.h>
+//创建顺序表
+#define LIST_INIT_SIZE 100//初始分配量
+#define LISTINCREMENT 10//线性表储存空间的分配增量
+typedef int ElemType;
+typedef int Status;
+//创建结构体
+typedef struct {
+	ElemType* elem;
+	int length;
+	int listsize;
+}SqList;
+//定义建立线性表的函数
+ElemType IntList_Sq1(SqList *p) {
+	(*p).elem = (ElemType*)malloc(LIST_INIT_SIZE * sizeof(ElemType));
+	if (!(*p).elem) exit(-2);
+	(*p).length = 0;
+	(*p).listsize = LIST_INIT_SIZE;
+	return 1;
+}
+//输出线性表的函数
+void display(SqList L){
+	for (int i = 0; i < L.length; i++) {
+		printf("%d ", L.elem[i]);
+	}
+	printf("\n");
+}
+//定义插入函数
+int ListInsert(SqList* p, int i, int e) {
+	//将e插入第i个之前一个元素（此时i从1开始取）
+	//能查到开头，不能插到结尾
+	if (i<1 || i>(*p).length + 1)return 0;//确保i合法
+	if ((*p).length >= (*p).listsize) {
+		ElemType* q;
+		q = (ElemType*)realloc((*p).elem, ((*p).listsize + LISTINCREMENT) * sizeof(ElemType));
+		if (!(*p).elem)exit(-2);
+		(*p).elem = q;
+	}
+	int* q;
+	q = &((*p).elem[i - 1]);
+	for (int* z = &(*p).elem[(*p).length - 1]; z >= q; --z) {//倒着来，为了防止信息覆盖
+		*(z + 1) = *z;
+	}
+	*q = e;
+	++((*p).length);
+	return 0;
+}
+//将某元素插入并保证有序性
+int ListInsert_2_11(SqList* p, int e) {
+	//先找到要插入第几个元素，然后调用插入函数即可插入并保证有序性
+	for (int i = 0; i < (*p).length; i++) {
+		if ((*p).elem[i] >= e) {
+			ListInsert(p, i+1, e);
+			break;
+		}
+	}
+	if ((*p).elem [(*p).length-1]<e) {//前面能保证插入最后一个元素之前，此处保证出入到最后一个元素之后
+		if ((*p).length >= (*p).listsize) {//检查空间是否足够
+			ElemType* q;
+			q = (ElemType*)realloc((*p).elem, ((*p).listsize + LISTINCREMENT) * sizeof(ElemType));
+			if (!(*p).elem)exit(-2);
+			(*p).elem = q;
+		}
+		(*p).elem[(*p).length] = e;
+		(*p).length++;
+	}
+	return 0;
+}
+//比较两个线性表的大小
+int comapre_2_12(SqList* p, SqList* q) {
+	//先比较两个线性表长度相等的部分，若可以比出，那么直接输出，函数结束
+	//若不可以比出，那么利用flag启动两个线性表的长度比较，进而比出长度
+	int flag = 1;//定义flag用于在相同长度比较完之后没出结果是启动长度比较
+	for (int i = 0; i < (*p).length && i < (*q).length; i++) {
+		if ((*p).elem[i] > (*q).elem[i]) {
+			printf("A>B\n");
+			flag = 0;
+			break;
+		}
+		if ((*p).elem[i] < (*q).elem[i]) {
+			printf("A<B\n");
+			flag = 0;
+			break;
+		}
+	}
+	if (flag) {
+		if ((*p).length > (*q).length)printf("A>B\n");
+		if ((*p).length < (*q).length)printf("A<B\n");
+		if ((*p).length == (*q).length)printf("A=B\n");
+	}
+	return 0;
+}
+
+int reverse_2_21(SqList* p) {
+	//设置一个临时变量，从两头向中间交换首位元素，根据奇偶略有不同
+	if ((*p).length % 2 == 0) {
+		int j;
+		for (int i = 0; i < (*p).length / 2; i++) {
+			j = (*p).elem[i];
+			(*p).elem[i] = (*p).elem[(*p).length - 1 - i];
+			(*p).elem[(*p).length - 1 - i] = j;
+		}
+	}else {
+		int j;
+		for (int i = 0; i < ((*p).length-1) / 2; i++) {
+			j = (*p).elem[i];
+			(*p).elem[i] = (*p).elem[(*p).length - 1 - i];
+			(*p).elem[(*p).length - 1 - i] = j;
+		}
+	}
+	return 0;
+}
+//求ab两个非递减线性表的交集，但是交集元素非递减不可重复，将交集存入a中
+int mixed_2_27(SqList* p, SqList* q) {
+	//将a中元素与b中比较，若比b小，则a中元素后移，比b大，b中元素后移，若相同，将此元素放在a中开头
+	//最后将长度根据元素数重置
+	int i = 0;
+	int j = 0;
+	int count = 0;
+	while( i < (*p).length && j < (*q).length) {
+		if ((*p).elem[i] < (*q).elem[j]) {
+			i++;
+		}
+		else if ((*p).elem[i] > (*q).elem[j]) {
+			j++;
+		}
+		else {
+			(*p).elem[count] =(*p).elem[i];
+			i++;
+			j++;
+			count++;
+		}
+	}
+	(*p).length = count;
+	return 0;
+}
+
+
+	void main(){
+		//2-11
+		int size = 6;
+		SqList L;
+		SqList* p;
+		p = &L;
+		IntList_Sq1(p);
+		for (int i = 1; i <= size; i++) {
+			L.elem[i - 1] = i * 2;
+			L.length++;
+		}
+		printf("顺序表中存储的元素分别是：\n");
+		display(L);
+		ListInsert_2_11(p, 22);
+		display(L);
+		free(L.elem);
+		//2-12
+		int sizea = 7;
+		int sizeb = 5;
+		SqList La;
+		SqList* a;
+		SqList Lb;
+		SqList* b;
+		a = &La;
+		b = &Lb;
+		IntList_Sq1(a);
+		IntList_Sq1(b);
+		int a1[] = { 0, 3, 3, 4, 5,6,7};
+		int b1[] = { 1, 2, 3, 4, 7};
+		for (int i = 1; i <= sizea; i++) {
+			La.elem[i - 1] = a1[i-1];
+			La.length++;
+		}
+		for (int i = 1; i <= sizeb; i++) {
+			Lb.elem[i - 1] = b1[i-1];
+			Lb.length++;
+		}
+		display(La);
+		display(Lb);
+		comapre_2_12(a, b);
+		//reverse_2_21(a);
+		//display(La);
+		mixed_2_27(a, b);
+		display(La);
+	}
