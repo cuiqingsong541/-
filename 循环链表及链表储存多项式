@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include<stdlib.h>
+typedef struct LNode {
+	int expn;
+	float coef;
+	struct LNode* next;
+}node, * LinkList;
+
+void creatnode(LinkList L, int a[8],float b[8]) {
+	//循环链表建立
+	(*L).next = NULL;
+	LinkList q = L;
+	for (int i = 0; i<8; i++) {//数组长度只能在a定义的时候计算（a传的是一个指针），所以此处直接写值
+		LinkList p = (LinkList)malloc(sizeof(node));
+		(*p).expn = a[i];
+		(*p).coef = b[i];
+		(*p).next = L;
+		(*q).next = p;
+		q = p;
+	}
+}
+
+void printnode(LinkList L){
+	//以多项式形式输出链表
+	LinkList head = L;
+	LinkList first = head->next;
+	while (1) {
+		printf("%f*x^%d",(*first).coef, (*first).expn);
+		if (first->next !=  L) {//first指的是要打印的数据的节点，通过他下一个节点是否和头节点相同判断是否结尾
+			printf("+");
+		}else{
+			break;
+		}
+		first = (*first).next;
+	}
+	printf("\n");
+}
+void derivatives2_41(LinkList n) {
+	//对多项式求导
+	LinkList p = n->next;
+	if (p->expn == 0) {
+		n->next = p->next;
+		free(p);
+		p = n;
+	}else {
+		p->coef = p->coef * p->expn;
+		p->expn = p->expn--;
+	}
+	if (p->next) {
+		LinkList q = p->next;
+		while (q != n) {//通过q和头节点是否相同判断循环该不该结束
+				if (q->expn == n) {
+					p->next = p->next->next;
+					free(q);
+					q = p->next;
+				}
+				else {
+					q->coef = q->coef * q->expn;
+					q->expn = q->expn - 1;
+					p = q;
+					q = q->next;
+				}
+		}
+	}
+}
+
+
+void main() {
+	int a[] = {-2,5,8,10,15,17,18,20};//指数
+	float b[] = { 1,2,3,4,7,9,6,6 };//系数
+	struct LNode node_n;//定义的时候就相当于已经分配了一个空间了，指针那种malloc是为了指针的方便
+	LinkList node_p = &node_n;
+	creatnode(node_p,a,b);
+	printnode(node_p);
+	derivatives2_41(node_p);
+	printnode(node_p);
+}
