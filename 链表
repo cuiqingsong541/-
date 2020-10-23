@@ -1,0 +1,133 @@
+#include <stdio.h>
+#include<stdlib.h>
+typedef struct LNode {
+	int data;
+	struct LNode* next;
+}node, * LinkList;
+
+void creatnode(LinkList L, int a[8]) {
+	//顺序建立
+	(*L).next = NULL;
+	LinkList q = L;
+	for (int i = 0; i<8; i++) {//数组长度只能在a定义的时候计算（a传的是一个指针），所以此处直接写值
+		LinkList p = (LinkList)malloc(sizeof(node));
+		(*p).data = a[i];
+		(*p).next = NULL;
+		(*q).next = p;
+		q = p;
+	}
+	//头插法
+	/*(*L).next = NULL;
+	(*L).data = 0;
+	for (int i = 0; i < 5; i++) {
+		LinkList p = (LinkList)malloc(sizeof(node));
+		(*p).next = (*L).next;
+		(*p).data = a[i];
+		(*L).next = p;
+		(*L).data++;
+	}*/
+}
+
+void printnode(node nodea){
+	//输出链表元素
+	LinkList first = nodea.next;
+	while (1) {
+		printf("%d",(*first).data);
+		if ((*first).next != NULL) {//first指的是要打印的数据的节点，通过他下一个节点判断是否结尾
+			printf(",");
+		}else{
+			break;
+		}
+		first = (*first).next;
+	}
+	printf("\n");
+
+}
+
+void change_2_19(LinkList n, int mink, int maxk) {
+	//删除链表n中小于mink，大于maxk的元素，并释放删除元素的空间
+	LinkList p = n->next;
+	LinkList q = p;//为了释放节点空间设置
+	int flag = 0;//只要链表中没有大于等于mink的元素将不会执行第二个循环
+	while ((*p).data <= maxk) {//防止链表最小值大于maxk
+		//只要链表有元素大于等于mink就将头指针后继指向该节点，退出循环
+		//为了防止链表最大元素小于mink，并执行第二个循环
+		if ((*p).data >= mink) {
+			n->next = p;//关于箭头和点，点是给结构体用的，箭头是给指针用的
+			flag = 1;
+			break;
+		}
+		else {
+			flag = 1;
+			p = (*p).next;
+			free(q);
+			q = p;
+		}
+	}
+	p = n->next;
+	q = p;
+	while (flag&&p) {
+		//由于判断节点数据大于maxk则无法回退，所以，我们将先比较第一个，然后比较第一个的下一个
+		//即，一直保留两个节点后移比较，若后一个>maxk则将前一个指向NULL
+		if ((*p).data > maxk) {//先比第一个
+			free(p);
+			q = NULL;
+		}
+		if (!(*p).next) {//如果只剩一个节点，那么直接退出就可以了（下个节点也是NULL下面if会报错）。
+			break;
+		}
+		if ((*(*p).next).data > maxk) {//如果相等也要保留，从下个节点开始释放，所以此处无等号
+			q = (*p).next;
+			(*p).next = NULL;
+			p = (*p).next;
+			p = q;//将等于或者小于maxk的next置为NULL，否则，会指向随机元素，如果free
+			while (1) {//释放p及p之后节点
+				if (p->next==NULL) {//如果p是最后一个，直接free
+					free(p);
+					flag = 0;
+					break;
+				}
+				else {
+					p = (*p).next;
+					free(q);
+					q = p;
+				}
+			}
+		}
+		p = p->next;
+	 }
+	//时间复杂度似乎与表长成正比
+}
+
+void revers(LinkList a) {
+	//利用头插法，实现就地逆置
+	LinkList p;
+	LinkList q;
+	p = a->next;
+	if (!(p->next)) {
+		return;
+	}
+	else {
+		q = p->next;
+	}//针对只有一个节点的情况
+	p->next = NULL;
+	while (p) {
+		p = q->next;
+		q->next = a->next;
+		a->next = q;
+		q = p;
+	}
+}
+
+
+void main() {
+	int a[] = {1,5,8,10,15,17,18,20};
+	node node_n;//定义的时候就相当于已经分配了一个空间了，指针那种malloc是为了指针的方便
+	LinkList node_p = &node_n;
+	creatnode(node_p,a);
+	printnode(node_n);
+	change_2_19(node_p, 1,16);
+	printnode(node_n);
+	revers(node_p);
+	printnode(node_n);
+}
